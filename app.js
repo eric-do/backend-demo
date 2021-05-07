@@ -9,11 +9,11 @@ let counter = 0;
 const parseDate = date => {
     let dateAsInteger = parseInt(date);
     formattedDate = isNaN(dateAsInteger) ? new Date(date) : new Date(dateAsInteger);
-    return formattedDate.toString() === "Invalid date" ? new Date() : formattedDate;
+    return formattedDate.toString() === "Invalid Date" ? null : formattedDate;
 }
 
 const parseBoolean = bool => {
-    return typeof bool === 'string' ? bool.toLowerCase() == 'true' : bool;
+    return typeof bool === 'string' ? bool.toLowerCase() === 'true' : bool;
 }
 
 const parseRating = rating => {
@@ -27,9 +27,10 @@ const parseRating = rating => {
 }
 
 const maxConcurrent = 10;
+const numConcurrent = 0;
 let isPaused = false;
 
-console.time('import');
+console.time('readFile');
 let csvStream = csv.parseFile("./csv/reviews_temp.csv", {
     headers: true,
     }).transform(record => ({
@@ -42,20 +43,22 @@ let csvStream = csv.parseFile("./csv/reviews_temp.csv", {
     }))
     .on("data", function(record){
         const q = `INSERT INTO reviews SET ?`;
-
         // csvStream.pause();
-
         db.query(q, record, (err) => {
             if (err) {
-                console.log(err);
+                throw err
             }
-            counter++
+
+            counter++;
+
+            if (counter % 100 === 0) {
+                console.log(counter);
+            }
         })
         // csvStream.resume();
-
     }).on("end", (count) => {
         console.log(`${count} rows successfully read.`);
-        console.timeEnd('import');
+        console.timeEnd('readFile');
         db.end();
     }).on("error", err => {
         console.log(err);
