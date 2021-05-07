@@ -1,48 +1,62 @@
 
 var fs = require('fs');
-var csv = require('fast-csv');
-const pool = require('./pgdb');
+const csv = require('fast-csv');
+const db = require('./db');
+const moment = require('moment');
 
-pool.connect(function(err){
-    if(err)
-    {
-        console.log(err);
+let counter = 0;
+
+const parseDate = date => {
+    let dateAsInteger = parseInt(date);
+    formattedDate = isNaN(dateAsInteger) ? new Date(date) : new Date(dateAsInteger);
+    return formattedDate.toString() === "Invalid date" ? new Date() : formattedDate;
+}
+
+const parseBoolean = bool => {
+    return typeof bool === 'string' ? bool.toLowerCase() == 'true' : bool;
+}
+
+const parseRating = rating => {
+    if (typeof rating === 'number') {
+        return Math.min(rating, 5);
     }
-});
 
-let counter = 0; 
+    if (typeof rating === 'string') {
+        return Math.min(parseInt(rating), 5) || 0;
+    }
+}
 
-// let header = [];
-// let data = [];
+const maxConcurrent = 10;
+let isPaused = false;
 
-let csvStream = csv.fromPath(".\\csv\\FL_insurance_sample.csv", { headers: true })
+console.time('import');
+let csvStream = csv.parseFile("./csv/reviews_temp.csv", {
+    headers: true,
+    }).transform(record => ({
+        ...record,
+        date: parseDate(record.date),
+        recommend: parseBoolean(record.recommend),
+        reported: parseBoolean(record.reported),
+        rating: parseRating(record.rating),
+        helpfulness: parseRating(record.rating),
+    }))
     .on("data", function(record){
-        csvStream.pause();
+        const q = `INSERT INTO reviews SET ?`;
 
-        if(counter < 100)
-        {
-            let policyID = record.policyID;
-            let statecode = record.statecode;
-            let county = record.county;
-            let point_latitude = record.point_latitude;
-            let point_longitude = record.point_longitude;
-            let line = record.line;
-            let construction = record.construction;
+        // csvStream.pause();
 
-            pool.query("INSERT INTO FL_insurance_sample(policyID, statecode, county, point_latitude, point_longitude, line, construction) \
-            VALUES($1, $2, $3, $4, $5, $6, $7)", [policyID, statecode, county, point_latitude, point_longitude, line, construction], function(err){
-                if(err)
-                {
-                    console.log(err);
-                }
-            });
-            ++counter;
-        }
+        db.query(q, record, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            counter++
+        })
+        // csvStream.resume();
 
-        csvStream.resume();
-
-    }).on("end", function(){
-        console.log("Job is done!");
-    }).on("error", function(err){
+    }).on("end", (count) => {
+        console.log(`${count} rows successfully read.`);
+        console.timeEnd('import');
+        db.end();
+    }).on("error", err => {
         console.log(err);
     });
