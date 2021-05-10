@@ -54,29 +54,26 @@ CREATE TABLE characteristic_reviews (
         ON DELETE CASCADE
 );
 
+-- LOAD DATA LOCAL INFILE './csv/reviews_temp.csv'
+-- INTO TABLE reviews_temp FIELDS TERMINATED BY ','
+-- OPTIONALLY ENCLOSED BY '"'
+-- LINES TERMINATED BY '\n'
+-- IGNORE 1 ROWS (
+--     id,
+--     product_id,
+--     rating,
+--     @var1,
+--     summary,
+--     body,
+--     recommend,
+--     reported,
+--     reviewer_name,
+--     reviewer_email,
+--     response,
+--     helpfulness
+-- )
+-- SET date=FROM_UNIXTIME(@var1/1000);
 
-LOAD DATA LOCAL INFILE './csv/reviews_temp.csv'
-INTO TABLE reviews_temp FIELDS TERMINATED BY ','
-OPTIONALLY ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-IGNORE 1 ROWS (
-    id,
-    product_id,
-    rating,
-    @var1,
-    summary,
-    body,
-    recommend,
-    reported,
-    reviewer_name,
-    reviewer_email,
-    response,
-    helpfulness
-)
-SET date=FROM_UNIXTIME(@var1/1000);
+-- DELETE FROM reviews_temp WHERE rating > 5;
 
-DELETE FROM reviews_temp
-WHERE rating > 5;
-
-INSERT INTO reviews
-SELECT * FROM reviews_temp;
+-- INSERT INTO reviews SELECT * FROM reviews_temp;

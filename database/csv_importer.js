@@ -1,22 +1,28 @@
 
 var fs = require('fs');
 const csv = require('fast-csv');
-const db = require('./db');
-const moment = require('moment');
-
-let counter = 0;
+const db = require('./');
 
 const parseDate = date => {
+    // parse number from string
+    // if the number is valid date, create Date object from number
+    // else create Date object from string
+    // return the date
     let dateAsInteger = parseInt(date);
     formattedDate = isNaN(dateAsInteger) ? new Date(date) : new Date(dateAsInteger);
     return formattedDate.toString() === "Invalid Date" ? null : formattedDate;
 }
 
 const parseBoolean = bool => {
+    // if string is "true" return true, otherwise return false
     return typeof bool === 'string' ? bool.toLowerCase() === 'true' : bool;
 }
 
 const parseRating = rating => {
+    // if the rating is greater than 5, return  5
+    // else return rating
+    // if the rating is a string
+    // attempt to parse string, else return 0
     if (typeof rating === 'number') {
         return Math.min(rating, 5);
     }
@@ -26,12 +32,13 @@ const parseRating = rating => {
     }
 }
 
+let counter = 0;
 const maxConcurrent = 10;
 const numConcurrent = 0;
 let isPaused = false;
 
 console.time('readFile');
-let csvStream = csv.parseFile("./csv/reviews_temp.csv", {
+let csvStream = csv.parseFile("../csv/reviews_temp.csv", {
     headers: true,
     }).transform(record => ({
         ...record,
@@ -39,7 +46,7 @@ let csvStream = csv.parseFile("./csv/reviews_temp.csv", {
         recommend: parseBoolean(record.recommend),
         reported: parseBoolean(record.reported),
         rating: parseRating(record.rating),
-        helpfulness: parseRating(record.rating),
+        helpfulness: parseRating(record.helpfulness)
     }))
     .on("data", function(record){
         const q = `INSERT INTO reviews SET ?`;

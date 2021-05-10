@@ -4,12 +4,17 @@
   "description": "parsing csv files and storing into database",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server/index.js"
   },
   "author": "Eduard Karesli",
   "license": "ISC",
   "dependencies": {
-    "pg": "*",
-    "fast-csv": "*"
+    "express": "^4.17.1",
+    "fast-csv": "*",
+    "moment": "^2.29.1",
+    "mysql": "*",
+    "nodemon": "^2.0.7",
+    "pg": "*"
   }
 }

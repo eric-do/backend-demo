@@ -1,5 +1,4 @@
-# csv_node_postgres
-Author: Eduard Karesli (ed.karesli@gmail.com)
-
-This is a sample application for processing CSV files using Node.js and storing data in a PostgreSQL database.
-
+# CSV import and performance testing
+This repo has sample code for:
+- ETL processes with CSV
+- Performance testing with Artillery

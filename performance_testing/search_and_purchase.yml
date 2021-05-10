@@ -1,0 +1,35 @@
+config:
+  target: "http://localhost:3000/api"
+  phases:
+    - duration: 10
+      arrivalRate: 5
+      name: Warm up
+    - duration: 20
+      arrivalRate: 5
+      rampTo: 50
+      name: Ramp up load
+    - duration: 60
+      arrivalRate: 50
+      name: Sustained load
+  payload:
+    path: "keywords.csv"
+    fields:
+      - "keyword"
+
+scenarios:
+  - name: "Search and add to cart"
+    flow:
+      - post:
+          url: "/search"
+          json:
+            kw: "{{ keyword }}"
+          capture:
+            - json: "$.results[0].id"
+              as: "productId"
+      - get:
+          url: "/products/{{ productId }}/details"
+      - think: 5
+      - post:
+          url: "/cart"
+          json:
+            productId: "{{ productId }}"
